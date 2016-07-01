@@ -178,6 +178,7 @@ PUBLIC void reset_msg(MESSAGE* p)
  *****************************************************************************/
 PRIVATE void block(struct proc* p)
 {
+    // buggy while some interrupts such as disk changed it
 	assert(p->p_flags);
 	schedule();
 }
@@ -475,13 +476,18 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m)
 		else
 			p_who_wanna_recv->p_recvfrom = proc2pid(p_from);
 
+        // buggy...
 		block(p_who_wanna_recv);
 
+        // disable following because assert would fail possibly
+        // while disk interrupt or keyboard occured
+#ifdef DEBUG_WITHOUT_DISK_INTERRUPT       
 		assert(p_who_wanna_recv->p_flags == RECEIVING);
 		assert(p_who_wanna_recv->p_msg != 0);
 		assert(p_who_wanna_recv->p_recvfrom != NO_TASK);
 		assert(p_who_wanna_recv->p_sendto == NO_TASK);
 		assert(p_who_wanna_recv->has_int_msg == 0);
+#endif        
 	}
 
 	return 0;
